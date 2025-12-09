@@ -15,9 +15,10 @@ import {
   addQrCode,
   serializeCanvas 
 } from './services/fabricHelper';
+import { generateSmartLayout } from './services/aiService';
 import { DEFAULT_LABEL_SIZE, AVAILABLE_FIELDS as DEFAULT_FIELDS, DPI as BASE_DPI } from './constants';
 import { LabelTemplate, DataField, CsvData } from './types';
-import { ZoomIn, ZoomOut, RefreshCcw, LayoutTemplate, Undo, Redo, Printer, FileJson, FolderOpen, Menu, Settings, Ruler, ScanLine } from 'lucide-react';
+import { ZoomIn, ZoomOut, RefreshCcw, LayoutTemplate, Undo, Redo, Printer, FileJson, FolderOpen, Menu, Settings, Ruler, ScanLine, Loader2, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,6 +33,9 @@ const App: React.FC = () => {
   const [isDataEditorOpen, setIsDataEditorOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
+  
+  // AI Loading State
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
   
   const [zoomLevel, setZoomLevel] = useState(1);
   const [screenPpi, setScreenPpi] = useState<number>(() => {
@@ -529,9 +533,86 @@ const App: React.FC = () => {
     setZoomLevel(realWorldScale);
   };
 
+  // --- AI Layout Generation ---
+  const handleGenerateLayout = async () => {
+     if (!csvData || !fabricRef.current) return;
+
+     if (!confirm("This will replace the current layout. Continue?")) return;
+
+     setIsAiGenerating(true);
+     
+     try {
+        const layoutObjects = await generateSmartLayout(
+           csvData, 
+           unit === 'cm' ? labelWidth / 2.54 : labelWidth,
+           unit === 'cm' ? labelHeight / 2.54 : labelHeight,
+           unit
+        );
+        
+        if (layoutObjects.length > 0) {
+           // Clear existing
+           handleExecuteReset();
+           
+           // Load new
+           // We need to modify 'text' property for text objects to show the variable syntax
+           const hydratedObjects = layoutObjects.map(obj => {
+             if (obj.type === 'i-text' || obj.type === 'text') {
+               return {
+                 ...obj,
+                 text: `{{${obj.dataKey}}}`,
+                 fill: '#0000FF' // Visual cue for variable
+               };
+             }
+             return obj;
+           });
+
+           await fabricRef.current.loadFromJSON({ objects: hydratedObjects });
+           
+           // Ensure barcodes/QRs are rendered as images, not placeholders
+           const canvasObjects = fabricRef.current.getObjects();
+           
+           // We need to trigger the generation of the actual barcode/QR images based on their dataKey
+           // Since loadFromJSON just puts the metadata there, the images might be blank rectangles initially.
+           // Let's iterate and force an update.
+           canvasObjects.forEach(obj => {
+              if ((obj as any).dataKey) {
+                 if ((obj as any).isBarcode) {
+                     addBarcode(fabricRef.current!, (obj as any).dataKey);
+                     fabricRef.current!.remove(obj); // Remove the placeholder
+                 } else if ((obj as any).isQrCode) {
+                     addQrCode(fabricRef.current!, (obj as any).dataKey);
+                     fabricRef.current!.remove(obj); // Remove the placeholder
+                 }
+              }
+           });
+           
+           fabricRef.current.requestRenderAll();
+           updateLayers();
+           saveHistory();
+        } else {
+           alert("AI could not generate a valid layout from this data.");
+        }
+     } catch (err) {
+        console.error(err);
+        alert("Failed to generate layout. Please check console or try again.");
+     } finally {
+        setIsAiGenerating(false);
+     }
+  };
+
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-900 overflow-hidden relative">
       
+      {/* Loading Overlay */}
+      {isAiGenerating && (
+         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+            <Sparkles className="animate-pulse text-yellow-400 mb-4" size={48} />
+            <Loader2 className="animate-spin mb-2" size={32} />
+            <h2 className="text-xl font-bold">Designing your label...</h2>
+            <p className="text-sm text-slate-300">Analyzing data and calculating layout</p>
+         </div>
+      )}
+
       {/* Mobile Overlay */}
       {(isMobileMenuOpen || isMobilePropsOpen) && (
         <div 
@@ -552,6 +633,7 @@ const App: React.FC = () => {
           onAddImage={handleAddImage}
           onImportCsv={handleImportCsv}
           onOpenDataEditor={() => setIsDataEditorOpen(true)}
+          onGenerateLayout={handleGenerateLayout}
           availableFields={availableFields}
           onClose={() => setIsMobileMenuOpen(false)}
         />
