@@ -22,6 +22,14 @@ const PAGE_DIMENSIONS: Record<PaperSize, { w: number, h: number }> = {
   a4: { w: 210, h: 297 } // mm
 };
 
+// Helper to convert arbitrary unit to mm for PDF generation
+const getMm = (val: number, unit: string) => {
+    if (unit === 'inch') return val * 25.4;
+    if (unit === 'cm') return val * 10;
+    if (unit === 'mm') return val;
+    return val; // Fallback
+};
+
 const PreviewModal: React.FC<PreviewModalProps> = ({ 
   isOpen, 
   onClose, 
@@ -67,8 +75,11 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   const effectivePageW = paperOrientation === 'portrait' ? PAGE_DIMENSIONS[paperSize].w : PAGE_DIMENSIONS[paperSize].h;
   const effectivePageH = paperOrientation === 'portrait' ? PAGE_DIMENSIONS[paperSize].h : PAGE_DIMENSIONS[paperSize].w;
 
-  const labelW_mm = templateData.dimensions.width * 25.4;
-  const labelH_mm = templateData.dimensions.height * 25.4;
+  // Normalize all dimensions to mm
+  const labelW_mm = getMm(templateData.dimensions.width, templateData.dimensions.unit);
+  const labelH_mm = getMm(templateData.dimensions.height, templateData.dimensions.unit);
+  
+  // Gaps are currently always inches in the UI, so convert inches to mm
   const gapX_mm = gapX * 25.4;
   const gapY_mm = gapY * 25.4;
 

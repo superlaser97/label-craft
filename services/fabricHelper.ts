@@ -6,7 +6,7 @@ import { LabelObject, LabelTemplate } from '../types';
 
 // --- Generators ---
 
-const getBarcodeDataUrl = (text: string): string => {
+const getBarcodeDataUrl = (text: string, color: string = '#000000'): string => {
   const canvas = document.createElement('canvas');
   try {
     JsBarcode(canvas, text, {
@@ -16,7 +16,8 @@ const getBarcodeDataUrl = (text: string): string => {
       margin: 10,
       width: 4, // Thicker bars for higher resolution
       height: 100, // Taller bars
-      background: '#ffffff' // Ensure white background
+      background: '#ffffff', // Ensure white background
+      lineColor: color
     });
     return canvas.toDataURL('image/png'); // Use PNG for barcode generation to keep quality
   } catch (e) {
@@ -25,14 +26,14 @@ const getBarcodeDataUrl = (text: string): string => {
   }
 };
 
-const getQrDataUrl = async (text: string): Promise<string> => {
+const getQrDataUrl = async (text: string, color: string = '#000000'): Promise<string> => {
   try {
     // Generate at high resolution (e.g., 400px)
     return await QRCode.toDataURL(text, { 
       width: 400, 
       margin: 1,
       color: {
-        dark: '#000000',
+        dark: color,
         light: '#ffffff'
       }
     });
@@ -139,6 +140,7 @@ export const addBarcode = (canvas: fabric.Canvas, dataKey: string) => {
       stroke: undefined,
       objectCaching: false, // Critical for sharp rendering on zoom
       lockScalingFlip: true, // Prevent flipping
+      fill: '#000000', // Store color meta-data
     });
     
     // Hide side controls to enforce uniform scaling via corners
@@ -172,6 +174,7 @@ export const addQrCode = async (canvas: fabric.Canvas, dataKey: string) => {
       stroke: undefined,
       objectCaching: false, // Critical for sharp rendering on zoom
       lockScalingFlip: true, // Prevent flipping
+      fill: '#000000', // Store color meta-data
     });
 
     // Hide side controls to enforce uniform scaling via corners
@@ -192,16 +195,23 @@ export const addQrCode = async (canvas: fabric.Canvas, dataKey: string) => {
 
 export const updateObjectDataKey = async (obj: fabric.Object, key: string) => {
   (obj as any).dataKey = key;
+  // Preserve current color
+  const color = (obj.fill as string) || '#000000';
   
   if (obj.type === 'i-text' || obj.type === 'text') {
     (obj as fabric.IText).set('text', `{{${key}}}`);
-    (obj as fabric.IText).set('fill', '#0000FF');
+    // Keep existing fill, or revert to blue? 
+    // Usually changing key shouldn't change color, but addVariableText uses blue.
+    // Let's keep it blue if it was blue, or let user change it. 
+    // For now, if the user explicitly changed it, it stays. 
+    // If it's a new variable, we might want to ensure it is visible. 
+    // But updateObjectDataKey is only called when changing the dropdown.
     obj.canvas?.requestRenderAll();
   } 
   else if (obj.type === 'image') {
     const imgObj = obj as fabric.Image;
     if ((imgObj as any).isBarcode) {
-        const newDataUrl = getBarcodeDataUrl(`{{${key}}}`);
+        const newDataUrl = getBarcodeDataUrl(`{{${key}}}`, color);
         const tempImg = new Image();
         tempImg.src = newDataUrl;
         tempImg.onload = () => {
@@ -209,7 +219,7 @@ export const updateObjectDataKey = async (obj: fabric.Object, key: string) => {
             imgObj.canvas?.requestRenderAll();
         }
     } else if ((imgObj as any).isQrCode) {
-        const newDataUrl = await getQrDataUrl(`{{${key}}}`);
+        const newDataUrl = await getQrDataUrl(`{{${key}}}`, color);
         const tempImg = new Image();
         tempImg.src = newDataUrl;
         tempImg.onload = () => {
@@ -220,7 +230,37 @@ export const updateObjectDataKey = async (obj: fabric.Object, key: string) => {
   }
 };
 
+export const updateObjectColor = async (obj: fabric.Object, color: string) => {
+  obj.set('fill', color);
+  
+  if (obj.type === 'image') {
+     const key = (obj as any).dataKey || ' ';
+     const imgObj = obj as fabric.Image;
+     
+     if ((obj as any).isBarcode) {
+         const newDataUrl = getBarcodeDataUrl(`{{${key}}}`, color);
+         const tempImg = new Image();
+         tempImg.src = newDataUrl;
+         tempImg.onload = () => {
+             imgObj.setElement(tempImg);
+             imgObj.canvas?.requestRenderAll();
+         };
+     } else if ((obj as any).isQrCode) {
+         const newDataUrl = await getQrDataUrl(`{{${key}}}`, color);
+         const tempImg = new Image();
+         tempImg.src = newDataUrl;
+         tempImg.onload = () => {
+             imgObj.setElement(tempImg);
+             imgObj.canvas?.requestRenderAll();
+         };
+     }
+  }
+  
+  obj.canvas?.requestRenderAll();
+};
+
 export const serializeCanvas = (canvas: fabric.Canvas): LabelObject[] => {
+  // fill is included by default, but we ensure dataKey and flags are kept
   const json = canvas.toObject(['dataKey', 'isBarcode', 'isQrCode', 'id']);
   return json.objects || [];
 };
@@ -244,8 +284,7 @@ export const generateLabelImage = async (
 
   await staticCanvas.loadFromJSON(template);
   
-  // FIX: Force white background after loadFromJSON, as it might have been reset to transparent
-  // JPEG format turns transparent pixels to black.
+  // FIX: Force white background after loadFromJSON
   staticCanvas.backgroundColor = '#ffffff';
 
   if (dataRow) {
@@ -253,18 +292,22 @@ export const generateLabelImage = async (
     
     const updates = objects.map(async (obj) => {
       const key = (obj as any).dataKey;
+      // Get the color from the object itself (loaded from JSON)
+      const color = (obj.fill as string) || '#000000';
+
       if (key && dataRow[key] !== undefined) {
         const value = dataRow[key];
 
         // Text
         if (obj.type === 'i-text' || obj.type === 'text') {
            (obj as fabric.Text).set('text', value);
-           (obj as fabric.Text).set('fill', '#000000'); 
+           // REMOVED: (obj as fabric.Text).set('fill', '#000000'); 
+           // We now trust the 'fill' that came with the object from loadFromJSON
         }
         
         // Barcode
         if (obj.type === 'image' && (obj as any).isBarcode) {
-            const barcodeUrl = getBarcodeDataUrl(value || ' ');
+            const barcodeUrl = getBarcodeDataUrl(value || ' ', color);
             const imgEl = document.createElement('img');
             imgEl.src = barcodeUrl;
             await new Promise(resolve => { imgEl.onload = resolve; });
@@ -273,7 +316,7 @@ export const generateLabelImage = async (
 
         // QR Code
         if (obj.type === 'image' && (obj as any).isQrCode) {
-            const qrUrl = await getQrDataUrl(value || ' ');
+            const qrUrl = await getQrDataUrl(value || ' ', color);
             const imgEl = document.createElement('img');
             imgEl.src = qrUrl;
             await new Promise(resolve => { imgEl.onload = resolve; });
@@ -287,8 +330,7 @@ export const generateLabelImage = async (
 
   staticCanvas.renderAll();
   
-  // Export using JPEG to save space, standard 300 DPI equivalent (approx)
-  // 96 DPI * 3 = 288 DPI
+  // Export using JPEG
   const dataUrl = staticCanvas.toDataURL({
     format: 'jpeg',
     multiplier: 3, 

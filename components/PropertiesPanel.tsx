@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import * as fabric from 'fabric';
 import { DataField } from '../types';
-import { updateObjectDataKey } from '../services/fabricHelper';
-import { Settings, Trash2, AlignLeft, AlignCenter, AlignRight, Layers, Type, Image as ImageIcon, Box, Hash, QrCode, X } from 'lucide-react';
+import { updateObjectDataKey, updateObjectColor } from '../services/fabricHelper';
+import { Settings, Trash2, AlignLeft, AlignCenter, AlignRight, Layers, Type, Image as ImageIcon, Box, Hash, QrCode, X, Palette } from 'lucide-react';
 import { AVAILABLE_FONTS } from '../constants';
 
 interface PropertiesPanelProps {
@@ -46,10 +46,13 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   const [fontSize, setFontSize] = useState<number>(14);
   const [textAlign, setTextAlign] = useState<string>('left');
   const [fontFamily, setFontFamily] = useState<string>('Arial');
+  const [color, setColor] = useState<string>('#000000');
   
   useEffect(() => {
     if (activeObject) {
       setDataKey((activeObject as any).dataKey || '');
+      setColor((activeObject.fill as string) || '#000000');
+      
       if (activeObject.type === 'i-text' || activeObject.type === 'text') {
         const textObj = activeObject as fabric.IText;
         setFontSize(textObj.fontSize || 14);
@@ -113,6 +116,13 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     onUpdate();
   };
 
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newColor = e.target.value;
+    setColor(newColor);
+    updateObjectColor(activeObject, newColor);
+    onUpdate();
+  };
+
   const handleFontSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const size = parseInt(e.target.value, 10);
     setFontSize(size);
@@ -144,6 +154,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 
   const isVariable = !!(activeObject as any).dataKey;
   const isText = activeObject.type === 'i-text' || activeObject.type === 'text';
+  // Check if it's a barcode/QR that we can color
+  const isColorableImage = (activeObject as any).isBarcode || (activeObject as any).isQrCode;
+
+  // We allow color picking for Text, Barcode, and QR. (Standard images are just images)
+  const showColorPicker = isText || isColorableImage;
 
   return (
     <div className="w-72 bg-white border-l border-slate-200 h-full flex flex-col shadow-xl lg:shadow-none">
@@ -187,6 +202,33 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </div>
           )}
         </div>
+
+        {/* Color Picker */}
+        {showColorPicker && (
+           <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1">
+                 <Palette size={12} /> Color
+              </label>
+              <div className="flex items-center gap-3">
+                 <div className="relative border border-slate-300 rounded-md overflow-hidden w-10 h-8 shadow-sm cursor-pointer hover:border-slate-400">
+                     <input 
+                        type="color" 
+                        value={color}
+                        onChange={handleColorChange}
+                        className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] p-0 border-0 cursor-pointer"
+                        title="Choose Color"
+                     />
+                 </div>
+                 <input 
+                    type="text" 
+                    value={color}
+                    onChange={(e) => { setColor(e.target.value); updateObjectColor(activeObject, e.target.value); onUpdate(); }}
+                    className="flex-1 text-xs font-mono p-1.5 border border-slate-300 rounded text-slate-600 uppercase focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="#000000"
+                 />
+              </div>
+           </div>
+        )}
 
         {/* Text Styling */}
         {isText && (

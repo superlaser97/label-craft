@@ -5,6 +5,7 @@ import PropertiesPanel from './components/PropertiesPanel';
 import PreviewModal from './components/PreviewModal';
 import DataEditorModal from './components/DataEditorModal';
 import ConfirmationModal from './components/ConfirmationModal';
+import CalibrationModal from './components/CalibrationModal';
 import { 
   createFabricCanvas, 
   resizeCanvas,
@@ -14,9 +15,9 @@ import {
   addQrCode,
   serializeCanvas 
 } from './services/fabricHelper';
-import { DEFAULT_LABEL_SIZE, AVAILABLE_FIELDS as DEFAULT_FIELDS } from './constants';
+import { DEFAULT_LABEL_SIZE, AVAILABLE_FIELDS as DEFAULT_FIELDS, DPI as BASE_DPI } from './constants';
 import { LabelTemplate, DataField, CsvData } from './types';
-import { ZoomIn, ZoomOut, RefreshCcw, LayoutTemplate, Undo, Redo, Printer, FileJson, FolderOpen, Menu, Settings } from 'lucide-react';
+import { ZoomIn, ZoomOut, RefreshCcw, LayoutTemplate, Undo, Redo, Printer, FileJson, FolderOpen, Menu, Settings, Ruler, ScanLine } from 'lucide-react';
 
 const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,7 +31,14 @@ const App: React.FC = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isDataEditorOpen, setIsDataEditorOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
+  
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [screenPpi, setScreenPpi] = useState<number>(() => {
+    const saved = localStorage.getItem('labelCraft_ppi');
+    return saved ? parseFloat(saved) : 96;
+  });
+
   const [jsonOutput, setJsonOutput] = useState<LabelTemplate | null>(null);
   const [previewImage, setPreviewImage] = useState<string>('');
 
@@ -45,6 +53,7 @@ const App: React.FC = () => {
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
 
   // Document Config State
+  const [unit, setUnit] = useState<'inch' | 'cm'>('inch');
   const [labelWidth, setLabelWidth] = useState(DEFAULT_LABEL_SIZE.width);
   const [labelHeight, setLabelHeight] = useState(DEFAULT_LABEL_SIZE.height);
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
@@ -178,6 +187,7 @@ const App: React.FC = () => {
   // Initialize Canvas
   useEffect(() => {
     if (canvasRef.current && !fabricRef.current) {
+      // Initially create with default size, resize logic handles the rest
       const canvas = createFabricCanvas(
         'label-canvas', 
         labelWidth, 
@@ -200,12 +210,6 @@ const App: React.FC = () => {
       canvas.on('object:added', () => { updateLayers(); saveHistory(); });
       canvas.on('object:removed', () => { updateLayers(); saveHistory(); });
       
-      // On modified, we must update the UI (coordinates) and save history.
-      // IMPORTANT: Do NOT spread the active object into a new object state (e.g. {...activeObject})
-      // because that creates a plain object and disconnects it from the Fabric prototype chain,
-      // causing methods like .set() to fail and properties to be lost in the PropertiesPanel.
-      // Instead, we call updateLayers() which triggers a re-render of App via setLayers,
-      // ensuring PropertiesPanel gets the updated activeObject reference.
       canvas.on('object:modified', () => { 
         updateLayers(); 
         saveHistory(); 
@@ -225,10 +229,14 @@ const App: React.FC = () => {
   // Handle Dimensions or Zoom Change
   useEffect(() => {
     if (fabricRef.current) {
-      // Resize canvas to physical pixels * zoom to ensure sharpness
-      resizeCanvas(fabricRef.current, labelWidth, labelHeight, zoomLevel);
+      // Logic: resizeCanvas expects INCHES.
+      // If our state is in CM, convert to inches for the canvas engine.
+      const wInches = unit === 'cm' ? labelWidth / 2.54 : labelWidth;
+      const hInches = unit === 'cm' ? labelHeight / 2.54 : labelHeight;
+      
+      resizeCanvas(fabricRef.current, wInches, hInches, zoomLevel);
     }
-  }, [labelWidth, labelHeight, zoomLevel]);
+  }, [labelWidth, labelHeight, zoomLevel, unit]);
 
   // CSV Parsing
   const handleImportCsv = (file: File) => {
@@ -273,6 +281,23 @@ const App: React.FC = () => {
     const h = labelHeight;
     setLabelWidth(h);
     setLabelHeight(w);
+  };
+
+  const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newUnit = e.target.value as 'inch' | 'cm';
+    if (newUnit === unit) return;
+
+    // Conversion factor
+    // Inch -> CM: * 2.54
+    // CM -> Inch: / 2.54
+    if (newUnit === 'cm') {
+       setLabelWidth(prev => parseFloat((prev * 2.54).toFixed(2)));
+       setLabelHeight(prev => parseFloat((prev * 2.54).toFixed(2)));
+    } else {
+       setLabelWidth(prev => parseFloat((prev / 2.54).toFixed(2)));
+       setLabelHeight(prev => parseFloat((prev / 2.54).toFixed(2)));
+    }
+    setUnit(newUnit);
   };
 
   // Canvas Handlers
@@ -327,7 +352,7 @@ const App: React.FC = () => {
       dimensions: {
         width: labelWidth,
         height: labelHeight,
-        unit: 'inch' as const
+        unit: unit // Save current unit preference
       },
       objects: objects
     };
@@ -383,8 +408,23 @@ const App: React.FC = () => {
         if (fabricRef.current) {
            // 1. Update Metadata
            setTemplateName(data.templateName);
-           setLabelWidth(data.dimensions.width);
-           setLabelHeight(data.dimensions.height);
+           
+           // Handle unit loading (defaults to inch if undefined)
+           const loadedUnit = data.dimensions.unit || 'inch';
+           
+           // If loaded unit is 'cm' or 'inch', set it directly.
+           // If 'mm' or 'px', we might need to convert, but for now assuming 'inch'/'cm' from our own app.
+           if (loadedUnit === 'cm') {
+               setUnit('cm');
+               setLabelWidth(data.dimensions.width);
+               setLabelHeight(data.dimensions.height);
+           } else {
+               setUnit('inch');
+               // If source was inch, use as is. If something else, simplistic fallback.
+               setLabelWidth(data.dimensions.width);
+               setLabelHeight(data.dimensions.height);
+           }
+
            // Simple heuristic for orientation
            setOrientation(data.dimensions.width > data.dimensions.height ? 'landscape' : 'portrait');
 
@@ -438,7 +478,10 @@ const App: React.FC = () => {
         
         // 3. Restore Canvas Defaults
         canvas.backgroundColor = '#ffffff';
-        resizeCanvas(canvas, labelWidth, labelHeight, zoomLevel);
+        // Logic: resizeCanvas expects INCHES
+        const wInches = unit === 'cm' ? labelWidth / 2.54 : labelWidth;
+        const hInches = unit === 'cm' ? labelHeight / 2.54 : labelHeight;
+        resizeCanvas(canvas, wInches, hInches, zoomLevel);
         canvas.requestRenderAll();
         
         // 4. Update React State
@@ -460,10 +503,30 @@ const App: React.FC = () => {
   };
 
   const handleZoom = (direction: 'in' | 'out') => {
-    let newZoom = zoomLevel + (direction === 'in' ? 0.25 : -0.25);
-    newZoom = Math.max(0.5, Math.min(newZoom, 3)); 
+    // Finer Step: 0.1 (10%) instead of 0.25 (25%)
+    let newZoom = zoomLevel + (direction === 'in' ? 0.1 : -0.1);
+    
+    // Floating point math fix (e.g. 1.10000000002)
+    newZoom = Math.round(newZoom * 10) / 10;
+    
+    // Expanded range: 10% to 500%
+    newZoom = Math.max(0.1, Math.min(newZoom, 5)); 
+    
     setZoomLevel(newZoom);
-    // Note: The resizing logic is handled by the useEffect dependent on zoomLevel
+  };
+
+  const handleSavePpi = (newPpi: number) => {
+    setScreenPpi(newPpi);
+    localStorage.setItem('labelCraft_ppi', newPpi.toString());
+  };
+
+  const handleSetOneToOne = () => {
+    // 1:1 means we want the screen inches to equal physical inches.
+    // Our base constant DPI is 96.
+    // If screen is 96PPI, scale is 1.
+    // If screen is 192PPI, we need scale 2 (so 96 * 2 = 192 pixels used = 1 inch).
+    const realWorldScale = screenPpi / BASE_DPI;
+    setZoomLevel(realWorldScale);
   };
 
   return (
@@ -525,7 +588,8 @@ const App: React.FC = () => {
                     type="number" 
                     value={labelWidth}
                     onChange={(e) => setLabelWidth(Number(e.target.value))}
-                    className="w-12 text-sm bg-white border border-slate-300 rounded px-1 py-0.5 text-center outline-none focus:border-blue-500"
+                    step={unit === 'inch' ? 0.1 : 0.1}
+                    className="w-20 text-sm bg-white border border-slate-300 rounded px-1 py-0.5 text-center outline-none focus:border-blue-500"
                  />
                </div>
                <span className="text-slate-300">x</span>
@@ -535,10 +599,20 @@ const App: React.FC = () => {
                     type="number" 
                     value={labelHeight}
                     onChange={(e) => setLabelHeight(Number(e.target.value))}
-                    className="w-12 text-sm bg-white border border-slate-300 rounded px-1 py-0.5 text-center outline-none focus:border-blue-500"
+                    step={unit === 'inch' ? 0.1 : 0.1}
+                    className="w-20 text-sm bg-white border border-slate-300 rounded px-1 py-0.5 text-center outline-none focus:border-blue-500"
                  />
                </div>
-               <span className="text-xs text-slate-400 font-mono ml-1">in</span>
+               
+               {/* Unit Selector */}
+               <select 
+                  value={unit} 
+                  onChange={handleUnitChange}
+                  className="bg-transparent text-xs font-semibold text-slate-600 uppercase border-none outline-none cursor-pointer hover:text-blue-600"
+               >
+                  <option value="inch">IN</option>
+                  <option value="cm">CM</option>
+               </select>
 
                <div className="w-px h-4 bg-slate-300 mx-2"></div>
 
@@ -587,7 +661,7 @@ const App: React.FC = () => {
           {/* Canvas Container */}
           <div className="relative shadow-2xl bg-white transition-all duration-300">
             <div className="absolute -top-6 left-0 text-xs font-mono text-slate-400 hidden md:block">
-              {labelWidth}" x {labelHeight}" @ 96DPI ({(zoomLevel * 100).toFixed(0)}%)
+              {labelWidth}{unit === 'inch' ? '"' : 'cm'} x {labelHeight}{unit === 'inch' ? '"' : 'cm'} @ {Math.round(screenPpi)}PPI ({(zoomLevel * 100).toFixed(0)}%)
             </div>
             <canvas id="label-canvas" ref={canvasRef} />
           </div>
@@ -619,6 +693,24 @@ const App: React.FC = () => {
               <span className="text-xs w-10 text-center font-mono font-medium text-slate-600">{Math.round(zoomLevel * 100)}%</span>
               <button onClick={() => handleZoom('in')} className="p-2 hover:bg-slate-100 rounded-lg text-slate-700 transition-colors" title="Zoom In"><ZoomIn size={18}/></button>
               
+              <div className="w-px h-6 bg-slate-200 mx-1"></div>
+
+              <button 
+                onClick={handleSetOneToOne}
+                className="p-2 hover:bg-slate-100 rounded-lg text-slate-700 transition-colors"
+                title="1:1 Real World View"
+              >
+                <ScanLine size={18} />
+              </button>
+
+              <button 
+                onClick={() => setIsCalibrationOpen(true)}
+                className="p-2 hover:bg-slate-100 rounded-lg text-slate-700 transition-colors"
+                title="Calibrate Screen"
+              >
+                <Ruler size={18} />
+              </button>
+
               <div className="w-px h-6 bg-slate-200 mx-1"></div>
 
               <button 
@@ -674,6 +766,13 @@ const App: React.FC = () => {
         title="Clear Canvas"
         message="Are you sure you want to delete all objects? This action cannot be undone."
         confirmLabel="Clear All"
+      />
+
+      <CalibrationModal
+        isOpen={isCalibrationOpen}
+        onClose={() => setIsCalibrationOpen(false)}
+        onSave={handleSavePpi}
+        currentPpi={screenPpi}
       />
     </div>
   );

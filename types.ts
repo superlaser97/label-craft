@@ -1,7 +1,7 @@
 export interface LabelDimensions {
   width: number;
   height: number;
-  unit: 'inch' | 'mm' | 'px';
+  unit: 'inch' | 'mm' | 'px' | 'cm';
 }
 
 export interface LabelObject {
