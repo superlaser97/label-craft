@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CsvData } from '../types';
-import { X, Trash2, Plus, Upload, Save, AlertCircle, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { X, Trash2, Plus, Upload, Save, AlertCircle, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eraser } from 'lucide-react';
+import ConfirmationModal from './ConfirmationModal';
 
 interface DataEditorModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [rowToDelete, setRowToDelete] = useState<number | null>(null);
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize local state when data prop changes, but only if open to save resources
@@ -48,15 +51,25 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
   };
 
   const handleDeleteRow = (visualIndex: number) => {
-    if (confirm('Are you sure you want to delete this row?')) {
-      const realIndex = startIndex + visualIndex;
-      const newRows = rows.filter((_, index) => index !== realIndex);
-      setRows(newRows);
-      // Adjust page if empty
-      if (newRows.length > 0 && newRows.length <= startIndex && currentPage > 1) {
-          setCurrentPage(c => c - 1);
-      }
+    setRowToDelete(visualIndex);
+  };
+
+  const executeDeleteRow = () => {
+    if (rowToDelete === null) return;
+    const realIndex = startIndex + rowToDelete;
+    const newRows = rows.filter((_, index) => index !== realIndex);
+    setRows(newRows);
+    // Adjust page if empty
+    if (newRows.length > 0 && newRows.length <= startIndex && currentPage > 1) {
+        setCurrentPage(c => c - 1);
     }
+    setRowToDelete(null);
+  };
+
+  const handleClearAll = () => {
+    setHeaders([]);
+    setRows([]);
+    setCurrentPage(1);
   };
 
   const handleAddRow = () => {
@@ -121,7 +134,7 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden relative">
         
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
@@ -163,6 +176,15 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
              >
                <Upload size={16} />
                Append CSV Data
+             </button>
+             <div className="h-6 w-px bg-slate-200 mx-1"></div>
+             <button 
+               onClick={() => setIsClearConfirmOpen(true)}
+               disabled={headers.length === 0}
+               className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+               <Eraser size={16} />
+               Clear All
              </button>
           </div>
           <div className="text-xs font-mono text-slate-400">
@@ -278,6 +300,26 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
              </button>
            </div>
         </div>
+
+        {/* Delete Row Confirmation Modal */}
+        <ConfirmationModal 
+           isOpen={rowToDelete !== null}
+           onClose={() => setRowToDelete(null)}
+           onConfirm={executeDeleteRow}
+           title="Delete Row"
+           message="Are you sure you want to delete this row? This action cannot be undone."
+           confirmLabel="Delete"
+        />
+
+        {/* Clear All Confirmation Modal */}
+        <ConfirmationModal 
+           isOpen={isClearConfirmOpen}
+           onClose={() => setIsClearConfirmOpen(false)}
+           onConfirm={handleClearAll}
+           title="Clear All Data"
+           message="Are you sure you want to remove all data (rows and headers)? This action cannot be undone."
+           confirmLabel="Clear Data"
+        />
 
       </div>
     </div>

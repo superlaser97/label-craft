@@ -210,7 +210,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                  <Palette size={12} /> Color
               </label>
               <div className="flex items-center gap-3">
-                 <div className="relative border border-slate-300 rounded-md overflow-hidden w-10 h-8 shadow-sm cursor-pointer hover:border-slate-400">
+                 <div className="relative border border-slate-300 bg-white rounded-md overflow-hidden w-10 h-8 shadow-sm cursor-pointer hover:border-slate-400">
                      <input 
                         type="color" 
                         value={color}
@@ -223,7 +223,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     type="text" 
                     value={color}
                     onChange={(e) => { setColor(e.target.value); updateObjectColor(activeObject, e.target.value); onUpdate(); }}
-                    className="flex-1 text-xs font-mono p-1.5 border border-slate-300 rounded text-slate-600 uppercase focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="flex-1 text-xs font-mono p-1.5 border border-slate-300 rounded text-slate-600 uppercase focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                     placeholder="#000000"
                  />
               </div>
