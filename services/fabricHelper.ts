@@ -200,12 +200,6 @@ export const updateObjectDataKey = async (obj: fabric.Object, key: string) => {
   
   if (obj.type === 'i-text' || obj.type === 'text') {
     (obj as fabric.IText).set('text', `{{${key}}}`);
-    // Keep existing fill, or revert to blue? 
-    // Usually changing key shouldn't change color, but addVariableText uses blue.
-    // Let's keep it blue if it was blue, or let user change it. 
-    // For now, if the user explicitly changed it, it stays. 
-    // If it's a new variable, we might want to ensure it is visible. 
-    // But updateObjectDataKey is only called when changing the dropdown.
     obj.canvas?.requestRenderAll();
   } 
   else if (obj.type === 'image') {
@@ -274,10 +268,25 @@ export const generateLabelImage = async (
 ): Promise<string> => {
   // Create a headless canvas
   const el = document.createElement('canvas');
+  
+  // Detect unit and convert to pixels correctly
+  let widthPx = INCH_TO_PX(template.dimensions.width);
+  let heightPx = INCH_TO_PX(template.dimensions.height);
+
+  // If unit is CM or MM, convert to inches first because INCH_TO_PX expects inches
+  // Note: App.tsx stores the raw value in the unit.
+  if (template.dimensions.unit === 'cm') {
+    widthPx = INCH_TO_PX(template.dimensions.width / 2.54);
+    heightPx = INCH_TO_PX(template.dimensions.height / 2.54);
+  } else if (template.dimensions.unit === 'mm') {
+    widthPx = INCH_TO_PX(template.dimensions.width / 25.4);
+    heightPx = INCH_TO_PX(template.dimensions.height / 25.4);
+  }
+
   // High multiplier for PDF export quality
   const staticCanvas = new fabric.StaticCanvas(el, {
-    width: INCH_TO_PX(template.dimensions.width),
-    height: INCH_TO_PX(template.dimensions.height),
+    width: widthPx,
+    height: heightPx,
     backgroundColor: '#ffffff', // Initial set
     enableRetinaScaling: true
   });
@@ -330,11 +339,10 @@ export const generateLabelImage = async (
 
   staticCanvas.renderAll();
   
-  // Export using JPEG
+  // Export using PNG for lossless quality and compatibility
   const dataUrl = staticCanvas.toDataURL({
-    format: 'jpeg',
-    multiplier: 3, 
-    quality: 0.8
+    format: 'png',
+    multiplier: 3
   });
 
   staticCanvas.dispose();

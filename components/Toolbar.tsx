@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Type, Variable, Barcode, QrCode, Image as ImageIcon, Box, Upload, Database, ChevronDown, ChevronRight, Info, Table, X, Sparkles } from 'lucide-react';
+import { Type, Variable, Barcode, QrCode, Image as ImageIcon, Box, Upload, Database, ChevronDown, ChevronRight, Info, Table, X } from 'lucide-react';
 import { DataField } from '../types';
 
 interface ToolbarProps {
@@ -10,9 +10,8 @@ interface ToolbarProps {
   onAddImage: (url: string) => void;
   onImportCsv: (file: File) => void;
   onOpenDataEditor: () => void;
-  onGenerateLayout?: () => void; // New prop for AI generation
   availableFields: DataField[];
-  onClose?: () => void; 
+  onClose?: () => void; // New prop for mobile
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ 
@@ -23,7 +22,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onAddImage,
   onImportCsv,
   onOpenDataEditor,
-  onGenerateLayout,
   availableFields,
   onClose
 }) => {
@@ -101,27 +99,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
             Import CSV Data
           </button>
 
-          {/* Manage Data & AI Generate Buttons - Only shows if data exists */}
+          {/* Manage Data Button - Only shows if data exists */}
           {availableFields.length > 0 && (
-            <div className="space-y-2 mt-2">
-              <button
+             <button
                 onClick={() => wrapAction(onOpenDataEditor)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-colors text-xs font-medium text-slate-200"
-              >
+                className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-colors text-xs font-medium text-slate-200"
+             >
                 <Table size={14} />
                 Manage Data ({availableFields.length} Cols)
-              </button>
-
-              {onGenerateLayout && (
-                <button
-                  onClick={() => wrapAction(onGenerateLayout)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border border-transparent rounded-lg transition-all text-sm font-bold text-white shadow-lg shadow-purple-900/20 group"
-                >
-                  <Sparkles size={16} className="group-hover:animate-pulse" />
-                  Auto-Layout with AI
-                </button>
-              )}
-            </div>
+             </button>
           )}
           
           <div className="mt-3">
