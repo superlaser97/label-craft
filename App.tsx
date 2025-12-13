@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const templateInputRef = useRef<HTMLInputElement>(null);
+  const workspaceRef = useRef<HTMLElement>(null);
   
   // App State
   const [activeObject, setActiveObject] = useState<fabric.Object | null>(null);
@@ -53,7 +54,7 @@ const App: React.FC = () => {
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
 
   // Document Config State
-  const [unit, setUnit] = useState<'inch' | 'cm'>('inch');
+  const [unit, setUnit] = useState<'inch' | 'cm'>('cm');
   const [labelWidth, setLabelWidth] = useState(DEFAULT_LABEL_SIZE.width);
   const [labelHeight, setLabelHeight] = useState(DEFAULT_LABEL_SIZE.height);
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
@@ -160,6 +161,23 @@ const App: React.FC = () => {
         // Check for active inputs to avoid triggering when typing
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName)) return;
 
+        // Select All (Ctrl + A)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            if (fabricRef.current) {
+                const objects = fabricRef.current.getObjects();
+                if (objects.length > 0) {
+                    const activeSelection = new fabric.ActiveSelection(objects, {
+                        canvas: fabricRef.current,
+                    });
+                    fabricRef.current.setActiveObject(activeSelection);
+                    fabricRef.current.requestRenderAll();
+                    setActiveObject(activeSelection);
+                }
+            }
+            return;
+        }
+
         // Undo/Redo
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
             e.preventDefault();
@@ -183,6 +201,33 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo, handleRedo, handleDeleteActive]);
 
+  // Workspace Scroll Zoom
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        // Allow propagation if needed, but here we just consume it for zoom
+        // Note: Canvas handles its own event and stops propagation, so this only handles outside canvas
+        
+        setZoomLevel(prevZoom => {
+          const delta = e.deltaY;
+          const change = delta > 0 ? -0.1 : 0.1;
+          let newZoom = prevZoom + change;
+          newZoom = Math.round(newZoom * 10) / 10;
+          return Math.max(0.1, Math.min(newZoom, 5));
+        });
+      }
+    };
+
+    workspace.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      workspace.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   // Initialize Canvas
   useEffect(() => {
@@ -213,6 +258,22 @@ const App: React.FC = () => {
       canvas.on('object:modified', () => { 
         updateLayers(); 
         saveHistory(); 
+      });
+
+      // Zoom with Ctrl + Scroll (Canvas Only)
+      canvas.on('mouse:wheel', (opt) => {
+        if (opt.e.ctrlKey) {
+          opt.e.preventDefault();
+          opt.e.stopPropagation();
+          
+          setZoomLevel(prevZoom => {
+            const delta = opt.e.deltaY;
+            const change = delta > 0 ? -0.1 : 0.1;
+            let newZoom = prevZoom + change;
+            newZoom = Math.round(newZoom * 10) / 10;
+            return Math.max(0.1, Math.min(newZoom, 5));
+          });
+        }
       });
 
       // Save initial state
@@ -656,7 +717,10 @@ const App: React.FC = () => {
         </header>
 
         {/* Canvas Area */}
-        <main className="flex-1 overflow-auto bg-slate-200/50 flex items-center justify-center p-4 md:p-8 relative">
+        <main 
+            ref={workspaceRef}
+            className="flex-1 overflow-auto bg-slate-200/50 flex items-center justify-center p-4 md:p-8 relative"
+        >
           
           {/* Canvas Container */}
           <div className="relative shadow-2xl bg-white transition-all duration-300">

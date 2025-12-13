@@ -19,8 +19,8 @@ export const AVAILABLE_FONTS = [
 ];
 
 export const DEFAULT_LABEL_SIZE = {
-  width: 4, // inches
-  height: 6, // inches
+  width: 4, // cm
+  height: 6, // cm
 };
 
 export const COLORS = {

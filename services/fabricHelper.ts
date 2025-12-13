@@ -210,6 +210,7 @@ export const updateObjectDataKey = async (obj: fabric.Object, key: string) => {
         tempImg.src = newDataUrl;
         tempImg.onload = () => {
             imgObj.setElement(tempImg);
+            imgObj.set({ stroke: undefined });
             imgObj.canvas?.requestRenderAll();
         }
     } else if ((imgObj as any).isQrCode) {
@@ -218,6 +219,7 @@ export const updateObjectDataKey = async (obj: fabric.Object, key: string) => {
         tempImg.src = newDataUrl;
         tempImg.onload = () => {
             imgObj.setElement(tempImg);
+            imgObj.set({ stroke: undefined });
             imgObj.canvas?.requestRenderAll();
         }
     }
@@ -237,6 +239,7 @@ export const updateObjectColor = async (obj: fabric.Object, color: string) => {
          tempImg.src = newDataUrl;
          tempImg.onload = () => {
              imgObj.setElement(tempImg);
+             imgObj.set({ stroke: undefined });
              imgObj.canvas?.requestRenderAll();
          };
      } else if ((obj as any).isQrCode) {
@@ -245,6 +248,7 @@ export const updateObjectColor = async (obj: fabric.Object, color: string) => {
          tempImg.src = newDataUrl;
          tempImg.onload = () => {
              imgObj.setElement(tempImg);
+             imgObj.set({ stroke: undefined });
              imgObj.canvas?.requestRenderAll();
          };
      }
@@ -321,6 +325,7 @@ export const generateLabelImage = async (
             imgEl.src = barcodeUrl;
             await new Promise(resolve => { imgEl.onload = resolve; });
             (obj as fabric.Image).setElement(imgEl);
+            (obj as fabric.Image).set({ stroke: undefined });
         }
 
         // QR Code
@@ -330,6 +335,7 @@ export const generateLabelImage = async (
             imgEl.src = qrUrl;
             await new Promise(resolve => { imgEl.onload = resolve; });
             (obj as fabric.Image).setElement(imgEl);
+            (obj as fabric.Image).set({ stroke: undefined });
         }
       }
     });

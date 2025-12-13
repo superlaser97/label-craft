@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { LabelTemplate, CsvData } from '../types';
 import { generateLabelImage } from '../services/fabricHelper';
-import { X, Grid3X3, Database, Printer, AlertTriangle, Settings2, ArrowRightLeft, ArrowUpDown, Maximize2, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Grid3X3, Database, Printer, AlertTriangle, Settings2, Maximize2, ZoomIn, ZoomOut, CheckCircle, Minimize2 } from 'lucide-react';
 
 interface PreviewModalProps {
   isOpen: boolean;
@@ -21,6 +21,9 @@ const PAGE_DIMENSIONS: Record<PaperSize, { w: number, h: number }> = {
   letter: { w: 215.9, h: 279.4 }, // mm
   a4: { w: 210, h: 297 } // mm
 };
+
+// Safe printing margin (hardware limits for most printers)
+const PRINT_MARGIN_MM = 6; 
 
 // Helper to convert arbitrary unit to mm for PDF generation
 const getMm = (val: number, unit: string) => {
@@ -75,6 +78,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   const effectivePageW = paperOrientation === 'portrait' ? PAGE_DIMENSIONS[paperSize].w : PAGE_DIMENSIONS[paperSize].h;
   const effectivePageH = paperOrientation === 'portrait' ? PAGE_DIMENSIONS[paperSize].h : PAGE_DIMENSIONS[paperSize].w;
 
+  // Define printable area
+  const safePageW = effectivePageW - (PRINT_MARGIN_MM * 2);
+  const safePageH = effectivePageH - (PRINT_MARGIN_MM * 2);
+
   // Normalize all dimensions to mm
   const labelW_mm = getMm(templateData.dimensions.width, templateData.dimensions.unit);
   const labelH_mm = getMm(templateData.dimensions.height, templateData.dimensions.unit);
@@ -86,13 +93,16 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   const rawGridW = (labelW_mm * tilingSettings.cols) + (gapX_mm * Math.max(0, tilingSettings.cols - 1));
   const rawGridH = (labelH_mm * tilingSettings.rows) + (gapY_mm * Math.max(0, tilingSettings.rows - 1));
 
-  let scaleFactor = 1;
-  const fitsNaturally = rawGridW <= effectivePageW && rawGridH <= effectivePageH;
+  // Determine if it fits naturally within safe margins
+  const fitsNaturally = rawGridW <= safePageW && rawGridH <= safePageH;
   
+  let scaleFactor = 1;
   if (autoScale && !fitsNaturally) {
-     const scaleX = effectivePageW / rawGridW;
-     const scaleY = effectivePageH / rawGridH;
-     scaleFactor = Math.min(scaleX, scaleY) * 0.98;
+     const scaleX = safePageW / rawGridW;
+     const scaleY = safePageH / rawGridH;
+     // Scale down to fit the most constrained dimension
+     // Use 0.999 to avoid floating point rounding issues causing overflow
+     scaleFactor = Math.min(scaleX, scaleY) * 0.999; 
   }
 
   const finalLabelW = labelW_mm * scaleFactor;
@@ -127,8 +137,15 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
 
   const handleWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
-       const delta = e.deltaY > 0 ? 0.9 : 1.1;
-       setViewZoom(z => Math.max(0.2, Math.min(z * delta, 5)));
+       const delta = e.deltaY;
+       const change = delta > 0 ? -0.1 : 0.1;
+       
+       setViewZoom(prevZoom => {
+          let newZoom = prevZoom + change;
+          // Round to 1 decimal place to avoid floating point weirdness
+          newZoom = Math.round(newZoom * 10) / 10;
+          return Math.max(0.1, Math.min(newZoom, 5));
+       });
     }
   };
 
@@ -145,6 +162,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
         const rows = tilingSettings.rows;
         const cols = tilingSettings.cols;
         const labelsPerPage = rows * cols;
+        // Center the grid on the page
         const startX = Math.max(0, (effectivePageW - finalGridW) / 2);
         const startY = Math.max(0, (effectivePageH - finalGridH) / 2);
         const dataRows = csvData && csvData.rows.length > 0 ? csvData.rows : [null]; 
@@ -180,6 +198,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
       }
     }, 100);
   };
+
+  const scalePercent = Math.floor(scaleFactor * 100);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-2 md:p-4">
@@ -294,12 +314,25 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                     </div>
                 </div>
                 
-                {/* Validation Status (Simplified for mobile) */}
-                 <div className={`mt-4 p-3 rounded text-xs border ${fitsNaturally ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : (autoScale ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-red-50 border-red-200 text-red-700')}`}>
+                {/* Validation Status */}
+                 <div className={`mt-4 p-3 rounded text-xs border ${fitsNaturally ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : (autoScale ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-amber-50 border-amber-200 text-amber-700')}`}>
                    {(!fitsNaturally && !autoScale) ? (
-                      <div className="flex items-center gap-2 font-bold"><AlertTriangle size={14}/> Will be cropped!</div>
+                      <div className="flex items-center gap-2 font-bold">
+                        <AlertTriangle size={14}/> 
+                        <span>Content exceeds printable area.</span>
+                      </div>
                    ) : (
-                      <div className="font-bold">Fits on page {autoScale && !fitsNaturally && '(Scaled)'}</div>
+                      <div className="flex flex-col gap-1.5">
+                         <div className="font-bold flex items-center gap-2">
+                            {fitsNaturally ? <CheckCircle size={14} className="text-emerald-600"/> : <Minimize2 size={14} className="text-blue-600"/>}
+                            <span>{fitsNaturally ? 'Fits perfectly' : 'Scaled to fit'}</span>
+                         </div>
+                         {!fitsNaturally && autoScale && (
+                            <div className="text-slate-500 leading-snug">
+                               Scaled to <strong>{scalePercent}%</strong> to fit within safe printable margins ({PRINT_MARGIN_MM}mm).
+                            </div>
+                         )}
+                      </div>
                    )}
                 </div>
 
@@ -342,6 +375,17 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                           {paperSize.toUpperCase()} ({paperOrientation})
                         </div>
                         
+                        {/* Safe Area Guide (Dashed Box) */}
+                        <div 
+                           className="absolute border border-dashed border-slate-300 pointer-events-none"
+                           style={{
+                              top: `${PRINT_MARGIN_MM * pxPerMm}px`,
+                              left: `${PRINT_MARGIN_MM * pxPerMm}px`,
+                              width: `${safePageW * pxPerMm}px`,
+                              height: `${safePageH * pxPerMm}px`,
+                           }}
+                        />
+
                         {/* Grid Container */}
                         <div 
                           className="w-full h-full relative"
@@ -365,7 +409,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                               <img 
                                 src={previewImage} 
                                 alt={`Label`}
-                                className="w-full h-full object-contain opacity-80"
+                                className="w-full h-full object-contain opacity-90"
                               />
                             </div>
                           ))}
