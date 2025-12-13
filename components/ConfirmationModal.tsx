@@ -21,28 +21,28 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+    <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center backdrop-blur-sm p-4">
+      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-zinc-800">
+        <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+          <h3 className="font-bold text-zinc-100 flex items-center gap-2">
             <AlertTriangle className="text-red-500" size={20} />
             {title}
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
             <X size={20} />
           </button>
         </div>
         
         <div className="p-6">
-          <p className="text-slate-600 text-sm leading-relaxed">
+          <p className="text-zinc-300 text-sm leading-relaxed">
             {message}
           </p>
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <div className="p-4 border-t border-zinc-800 bg-zinc-900 flex justify-end gap-3">
           <button 
             onClick={onClose}
-            className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 text-zinc-400 hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors"
           >
             Cancel
           </button>

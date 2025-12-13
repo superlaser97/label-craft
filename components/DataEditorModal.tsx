@@ -133,36 +133,36 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden relative">
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden relative border border-zinc-800">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800 bg-zinc-900">
           <div>
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <FileText size={20} className="text-blue-600" />
+            <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+              <FileText size={20} className="text-blue-500" />
               Manage Data Source
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               Edit values directly, add rows, or append more data from CSV.
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
+          <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-500">
             <X size={20} />
           </button>
         </div>
 
         {/* Toolbar */}
-        <div className="p-3 border-b border-slate-200 flex items-center justify-between bg-white">
+        <div className="p-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
           <div className="flex items-center gap-2">
              <button 
                onClick={handleAddRow}
-               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-sm font-medium transition-colors"
+               className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-sm font-medium transition-colors border border-zinc-700"
              >
                <Plus size={16} />
                Add Empty Row
              </button>
-             <div className="h-6 w-px bg-slate-200 mx-1"></div>
+             <div className="h-6 w-px bg-zinc-700 mx-1"></div>
              <input 
                type="file" 
                accept=".csv" 
@@ -172,66 +172,66 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
              />
              <button 
                onClick={() => fileInputRef.current?.click()}
-               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-sm font-medium transition-colors"
+               className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-sm font-medium transition-colors border border-zinc-700"
              >
                <Upload size={16} />
                Append CSV Data
              </button>
-             <div className="h-6 w-px bg-slate-200 mx-1"></div>
+             <div className="h-6 w-px bg-zinc-700 mx-1"></div>
              <button 
                onClick={() => setIsClearConfirmOpen(true)}
                disabled={headers.length === 0}
-               className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+               className="flex items-center gap-1.5 px-3 py-1.5 bg-red-900/20 hover:bg-red-900/30 text-red-400 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-red-900/20"
              >
                <Eraser size={16} />
                Clear All
              </button>
           </div>
-          <div className="text-xs font-mono text-slate-400">
+          <div className="text-xs font-mono text-zinc-500">
             {rows.length} Rows &bull; {headers.length} Columns
           </div>
         </div>
 
         {/* Table Area */}
-        <div className="flex-1 overflow-auto bg-slate-50">
+        <div className="flex-1 overflow-auto bg-zinc-950">
           {headers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+            <div className="flex flex-col items-center justify-center h-full text-zinc-600">
                <AlertCircle size={48} className="mb-2 opacity-20" />
                <p>No data loaded.</p>
             </div>
           ) : (
             <table className="w-full text-sm text-left border-collapse">
-              <thead className="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0 shadow-sm z-10">
+              <thead className="text-xs text-zinc-300 uppercase bg-zinc-900 sticky top-0 shadow-sm z-10">
                 <tr>
-                  <th className="px-4 py-3 border-b border-r border-slate-200 w-12 text-center bg-slate-100">#</th>
+                  <th className="px-4 py-3 border-b border-r border-zinc-800 w-12 text-center bg-zinc-900">#</th>
                   {headers.map(header => (
-                    <th key={header} className="px-4 py-3 border-b border-r border-slate-200 bg-slate-100 min-w-[150px]">
+                    <th key={header} className="px-4 py-3 border-b border-r border-zinc-800 bg-zinc-900 min-w-[150px]">
                       {header}
                     </th>
                   ))}
-                  <th className="px-4 py-3 border-b border-slate-200 w-12 text-center bg-slate-100">Action</th>
+                  <th className="px-4 py-3 border-b border-zinc-800 w-12 text-center bg-zinc-900">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.map((row, visualIndex) => (
-                  <tr key={startIndex + visualIndex} className="bg-white hover:bg-blue-50/30">
-                    <td className="px-2 py-2 border-b border-r border-slate-200 text-center text-xs text-slate-400 font-mono">
+                  <tr key={startIndex + visualIndex} className="bg-zinc-950 hover:bg-zinc-900 transition-colors group">
+                    <td className="px-2 py-2 border-b border-r border-zinc-800 text-center text-xs text-zinc-600 font-mono group-hover:text-zinc-400">
                       {startIndex + visualIndex + 1}
                     </td>
                     {headers.map(header => (
-                      <td key={`${startIndex + visualIndex}-${header}`} className="border-b border-r border-slate-200 p-0">
+                      <td key={`${startIndex + visualIndex}-${header}`} className="border-b border-r border-zinc-800 p-0">
                         <input 
                           type="text" 
                           value={row[header] || ''} 
                           onChange={(e) => handleCellChange(visualIndex, header, e.target.value)}
-                          className="w-full h-full px-4 py-2 bg-transparent outline-none focus:bg-blue-50 focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all text-slate-700"
+                          className="w-full h-full px-4 py-2 bg-transparent outline-none focus:bg-blue-900/20 focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all text-zinc-300"
                         />
                       </td>
                     ))}
-                    <td className="border-b border-slate-200 text-center">
+                    <td className="border-b border-zinc-800 text-center">
                       <button 
                         onClick={() => handleDeleteRow(visualIndex)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors"
                         title="Delete Row"
                       >
                         <Trash2 size={16} />
@@ -245,55 +245,55 @@ const DataEditorModal: React.FC<DataEditorModalProps> = ({ isOpen, onClose, data
         </div>
 
         {/* Footer - Pagination & Actions */}
-        <div className="p-4 border-t border-slate-200 bg-white flex justify-between items-center">
+        <div className="p-4 border-t border-zinc-800 bg-zinc-900 flex justify-between items-center">
            
            {/* Pagination Controls */}
            <div className="flex items-center gap-2">
               <button 
                 onClick={() => setCurrentPage(1)} 
                 disabled={currentPage === 1 || headers.length === 0}
-                className="p-1.5 rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronsLeft size={16} className="text-slate-600" />
+                <ChevronsLeft size={16} />
               </button>
               <button 
                 onClick={() => setCurrentPage(c => Math.max(1, c - 1))} 
                 disabled={currentPage === 1 || headers.length === 0}
-                className="p-1.5 rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronLeft size={16} className="text-slate-600" />
+                <ChevronLeft size={16} />
               </button>
               
-              <span className="text-xs font-medium text-slate-600 mx-2">
+              <span className="text-xs font-medium text-zinc-500 mx-2">
                 Page {currentPage} of {totalPages || 1}
               </span>
 
               <button 
                 onClick={() => setCurrentPage(c => Math.min(totalPages, c + 1))} 
                 disabled={currentPage === totalPages || headers.length === 0}
-                className="p-1.5 rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronRight size={16} className="text-slate-600" />
+                <ChevronRight size={16} />
               </button>
               <button 
                 onClick={() => setCurrentPage(totalPages)} 
                 disabled={currentPage === totalPages || headers.length === 0}
-                className="p-1.5 rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronsRight size={16} className="text-slate-600" />
+                <ChevronsRight size={16} />
               </button>
            </div>
 
            <div className="flex items-center gap-3">
              <button 
                onClick={onClose} 
-               className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-md font-medium text-sm"
+               className="px-4 py-2 text-zinc-400 hover:bg-zinc-800 rounded-md font-medium text-sm"
              >
                Cancel
              </button>
              <button 
                onClick={handleSave} 
-               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-sm shadow-sm flex items-center gap-2"
+               className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium text-sm shadow-sm flex items-center gap-2"
              >
                <Save size={16} />
                Save Changes

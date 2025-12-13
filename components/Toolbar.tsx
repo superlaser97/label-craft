@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Type, Variable, Barcode, QrCode, Image as ImageIcon, Box, Upload, Database, ChevronDown, ChevronRight, Info, Table, X } from 'lucide-react';
+import { Type, Variable, Barcode, QrCode, Image as ImageIcon, Box, Upload, Database, ChevronDown, ChevronRight, Info, Table, X, Square, Circle, Triangle, Minus } from 'lucide-react';
 import { DataField } from '../types';
 
 interface ToolbarProps {
@@ -8,6 +8,7 @@ interface ToolbarProps {
   onAddBarcode: (key: string) => void;
   onAddQrCode: (key: string) => void;
   onAddImage: (url: string) => void;
+  onAddShape: (type: 'rect' | 'circle' | 'triangle' | 'line') => void;
   onImportCsv: (file: File) => void;
   onOpenDataEditor: () => void;
   availableFields: DataField[];
@@ -20,6 +21,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onAddBarcode, 
   onAddQrCode,
   onAddImage,
+  onAddShape,
   onImportCsv,
   onOpenDataEditor,
   availableFields,
@@ -65,25 +67,25 @@ const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   return (
-    <div className="w-64 bg-slate-900 text-white flex flex-col border-r border-slate-700 h-full shadow-xl lg:shadow-none">
-      <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Box size={24} className="text-blue-400" />
-          LabelCraft
+    <div className="w-64 bg-zinc-900 text-zinc-100 flex flex-col border-r border-zinc-800 h-full shadow-xl lg:shadow-none">
+      <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+        <h1 className="text-xl font-bold flex items-center gap-2 text-zinc-100">
+          <Box size={24} className="text-blue-500" />
+          Label Maker
         </h1>
         {/* Mobile Close Button */}
         {onClose && (
-          <button onClick={onClose} className="lg:hidden p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+          <button onClick={onClose} className="lg:hidden p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white">
             <X size={20} />
           </button>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-700">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-zinc-700">
         
         {/* Data Source */}
         <div>
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Data Source</h3>
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Data Source</h3>
           <input 
             type="file" 
             accept=".csv" 
@@ -93,9 +95,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center gap-3 px-4 py-3 bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-800 rounded-lg transition-colors text-sm font-medium text-indigo-100"
+            className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-all text-sm font-medium text-zinc-200 shadow-sm"
           >
-            <Upload size={18} />
+            <Upload size={18} className="text-blue-400" />
             Import CSV Data
           </button>
 
@@ -103,7 +105,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           {availableFields.length > 0 && (
              <button
                 onClick={() => wrapAction(onOpenDataEditor)}
-                className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-colors text-xs font-medium text-slate-200"
+                className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg transition-colors text-xs font-medium text-zinc-300"
              >
                 <Table size={14} />
                 Manage Data ({availableFields.length} Cols)
@@ -113,7 +115,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           <div className="mt-3">
              <button 
                 onClick={() => setShowHelp(!showHelp)}
-                className="w-full flex items-center justify-between text-xs text-slate-500 hover:text-slate-300 transition-colors py-1"
+                className="w-full flex items-center justify-between text-xs text-zinc-500 hover:text-zinc-300 transition-colors py-1"
              >
                 <div className="flex items-center gap-1.5">
                    <Info size={12} />
@@ -123,9 +125,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
              </button>
 
              {showHelp && (
-               <div className="mt-2 p-3 bg-slate-800 rounded-md border border-slate-700 animate-in slide-in-from-top-1 fade-in duration-200">
-                  <div className="text-xs text-slate-400">
-                     <p className="font-semibold text-slate-300 mb-1">Required Structure:</p>
+               <div className="mt-2 p-3 bg-zinc-800 rounded-md border border-zinc-700 animate-in slide-in-from-top-1 fade-in duration-200">
+                  <div className="text-xs text-zinc-400">
+                     <p className="font-semibold text-zinc-300 mb-1">Required Structure:</p>
                      <ul className="list-disc pl-3 space-y-1 leading-relaxed">
                         <li>Row 1: <strong>Headers</strong> (e.g. Name, SKU).</li>
                         <li>Headers become data variables.</li>
@@ -136,7 +138,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </div>
 
           {availableFields.length > 0 && (
-            <div className="mt-3 text-xs text-green-400 flex items-center gap-1 px-1">
+            <div className="mt-3 text-xs text-emerald-400 flex items-center gap-1 px-1">
               <Database size={12} />
               {availableFields.length} fields loaded
             </div>
@@ -145,13 +147,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
         {/* Basic Elements */}
         <div>
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Basic Elements</h3>
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Basic Elements</h3>
           <div className="space-y-2">
             <button
               onClick={() => wrapAction(onAddText)}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors text-sm font-medium"
+              className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors text-sm font-medium text-zinc-200 shadow-sm"
             >
-              <Type size={18} />
+              <Type size={18} className="text-zinc-400" />
               Add Static Text
             </button>
             
@@ -164,24 +166,59 @@ const Toolbar: React.FC<ToolbarProps> = ({
             />
             <button
               onClick={() => imageInputRef.current?.click()}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors text-sm font-medium"
+              className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors text-sm font-medium text-zinc-200 shadow-sm"
             >
-              <ImageIcon size={18} />
+              <ImageIcon size={18} className="text-zinc-400" />
               Add Image
             </button>
           </div>
         </div>
 
+        {/* Shapes & Lines */}
+        <div>
+           <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Shapes & Lines</h3>
+           <div className="grid grid-cols-4 gap-2">
+             <button
+               onClick={() => wrapAction(() => onAddShape('rect'))}
+               className="flex flex-col items-center justify-center p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors aspect-square text-zinc-300"
+               title="Rectangle"
+             >
+               <Square size={20} />
+             </button>
+             <button
+               onClick={() => wrapAction(() => onAddShape('circle'))}
+               className="flex flex-col items-center justify-center p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors aspect-square text-zinc-300"
+               title="Circle"
+             >
+               <Circle size={20} />
+             </button>
+             <button
+               onClick={() => wrapAction(() => onAddShape('triangle'))}
+               className="flex flex-col items-center justify-center p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors aspect-square text-zinc-300"
+               title="Triangle"
+             >
+               <Triangle size={20} />
+             </button>
+             <button
+               onClick={() => wrapAction(() => onAddShape('line'))}
+               className="flex flex-col items-center justify-center p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors aspect-square text-zinc-300"
+               title="Line"
+             >
+               <Minus size={20} />
+             </button>
+           </div>
+        </div>
+
         {/* Data Binding Elements */}
         <div>
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Data Bindings</h3>
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Data Bindings</h3>
           <div className="space-y-2">
              
              {/* Variable Text Accordion */}
              <div>
                 <button 
                   onClick={() => toggleSection('variable')}
-                  className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-colors text-sm font-medium ${availableFields.length === 0 ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-900/40 hover:bg-blue-900/60 border-blue-800 text-blue-100'}`}
+                  className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-colors text-sm font-medium ${availableFields.length === 0 ? 'bg-zinc-800/50 border-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-blue-900/20 hover:bg-blue-900/30 border-blue-900/50 text-blue-300'}`}
                   disabled={availableFields.length === 0}
                 >
                    <div className="flex items-center gap-3">
@@ -193,12 +230,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
                    )}
                 </button>
                 {expandedSection === 'variable' && availableFields.length > 0 && (
-                  <div className="mt-1 ml-3 border-l-2 border-slate-700 pl-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                  <div className="mt-1 ml-3 border-l-2 border-zinc-700 pl-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
                      {availableFields.map(field => (
                        <button
                          key={field.value}
                          onClick={() => wrapAction(() => onAddVariable(field.value))}
-                         className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors flex items-center gap-2 group"
+                         className="w-full text-left px-3 py-2 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors flex items-center gap-2 group"
                        >
                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:bg-blue-400"></span>
                          <span className="truncate">{field.label}</span>
@@ -212,7 +249,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
              <div>
                 <button 
                   onClick={() => toggleSection('barcode')}
-                  className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-colors text-sm font-medium ${availableFields.length === 0 ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-emerald-900/40 hover:bg-emerald-900/60 border-emerald-800 text-emerald-100'}`}
+                  className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-colors text-sm font-medium ${availableFields.length === 0 ? 'bg-zinc-800/50 border-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-emerald-900/20 hover:bg-emerald-900/30 border-emerald-900/50 text-emerald-300'}`}
                   disabled={availableFields.length === 0}
                 >
                    <div className="flex items-center gap-3">
@@ -224,12 +261,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
                    )}
                 </button>
                 {expandedSection === 'barcode' && availableFields.length > 0 && (
-                  <div className="mt-1 ml-3 border-l-2 border-slate-700 pl-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                  <div className="mt-1 ml-3 border-l-2 border-zinc-700 pl-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
                      {availableFields.map(field => (
                        <button
                          key={field.value}
                          onClick={() => wrapAction(() => onAddBarcode(field.value))}
-                         className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors flex items-center gap-2 group"
+                         className="w-full text-left px-3 py-2 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors flex items-center gap-2 group"
                        >
                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 group-hover:bg-emerald-400"></span>
                          <span className="truncate">{field.label}</span>
@@ -243,7 +280,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
              <div>
                 <button 
                   onClick={() => toggleSection('qr')}
-                  className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-colors text-sm font-medium ${availableFields.length === 0 ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-900/40 hover:bg-purple-900/60 border-purple-800 text-purple-100'}`}
+                  className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-colors text-sm font-medium ${availableFields.length === 0 ? 'bg-zinc-800/50 border-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-purple-900/20 hover:bg-purple-900/30 border-purple-900/50 text-purple-300'}`}
                   disabled={availableFields.length === 0}
                 >
                    <div className="flex items-center gap-3">
@@ -255,12 +292,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
                    )}
                 </button>
                 {expandedSection === 'qr' && availableFields.length > 0 && (
-                  <div className="mt-1 ml-3 border-l-2 border-slate-700 pl-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                  <div className="mt-1 ml-3 border-l-2 border-zinc-700 pl-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
                      {availableFields.map(field => (
                        <button
                          key={field.value}
                          onClick={() => wrapAction(() => onAddQrCode(field.value))}
-                         className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors flex items-center gap-2 group"
+                         className="w-full text-left px-3 py-2 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors flex items-center gap-2 group"
                        >
                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500 group-hover:bg-purple-400"></span>
                          <span className="truncate">{field.label}</span>
@@ -272,12 +309,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
           </div>
           {availableFields.length === 0 && (
-            <p className="text-[10px] text-slate-500 mt-2 text-center">Import CSV to enable bindings</p>
+            <p className="text-[10px] text-zinc-500 mt-2 text-center">Import CSV to enable bindings</p>
           )}
         </div>
       </div>
 
-      <div className="p-4 border-t border-slate-700 text-xs text-slate-500 text-center">
+      <div className="p-4 border-t border-zinc-800 text-xs text-zinc-600 text-center">
         v1.3.1
       </div>
     </div>

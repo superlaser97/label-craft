@@ -1,3 +1,4 @@
+
 export interface LabelDimensions {
   width: number;
   height: number;
@@ -11,6 +12,9 @@ export interface LabelObject {
   width?: number;
   height?: number;
   fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeUniform?: boolean; // New property for uniform stroke scaling
   text?: string;
   fontSize?: number;
   fontFamily?: string;
@@ -43,4 +47,10 @@ export interface PageLayout {
 export interface CsvData {
   headers: string[];
   rows: Record<string, string>[];
+}
+
+export interface SavedTemplateMetadata {
+  id: string;
+  name: string;
+  updatedAt: number;
 }

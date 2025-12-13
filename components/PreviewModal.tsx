@@ -202,25 +202,25 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   const scalePercent = Math.floor(scaleFactor * 100);
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-2 md:p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[95vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center backdrop-blur-sm p-2 md:p-4">
+      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-7xl h-[95vh] flex flex-col overflow-hidden border border-zinc-800">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Printer size={20} className="text-blue-600" />
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800 bg-zinc-900">
+          <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+            <Printer size={20} className="text-blue-500" />
             Print & Export PDF
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-500">
             <X size={20} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 bg-slate-50">
+        <div className="flex border-b border-zinc-800 bg-zinc-900">
           <button 
             onClick={() => setActiveTab('preview')}
-            className={`px-4 md:px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'preview' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`px-4 md:px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'preview' ? 'border-blue-500 text-blue-400 bg-zinc-800/50' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
           >
             <Grid3X3 size={16} />
             <span className="hidden md:inline">Page Layout</span>
@@ -228,7 +228,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
           </button>
           <button 
             onClick={() => setActiveTab('data')}
-            className={`px-4 md:px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'data' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`px-4 md:px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'data' ? 'border-blue-500 text-blue-400 bg-zinc-800/50' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
           >
             <Database size={16} />
             <span className="hidden md:inline">Data Validation</span>
@@ -237,35 +237,35 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden bg-slate-100 flex relative flex-col md:flex-row">
+        <div className="flex-1 overflow-hidden bg-zinc-950 flex relative flex-col md:flex-row">
           {activeTab === 'preview' && (
             <>
               {/* Left Settings Panel - Scrollable independently */}
-              <div className="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-slate-200 overflow-y-auto p-6 space-y-6 flex-shrink-0 z-10 shadow-lg h-1/3 md:h-full">
+              <div className="w-full md:w-80 bg-zinc-900 border-b md:border-b-0 md:border-r border-zinc-800 overflow-y-auto p-6 space-y-6 flex-shrink-0 z-10 shadow-lg h-1/3 md:h-full">
                 
                 {/* Paper Settings */}
                 <div>
-                   <h4 className="font-semibold text-sm mb-4 text-slate-700 border-b pb-2 flex items-center gap-2">
+                   <h4 className="font-semibold text-sm mb-4 text-zinc-300 border-b border-zinc-700 pb-2 flex items-center gap-2">
                       <Settings2 size={16} /> Paper Settings
                    </h4>
                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                         <label className="block text-xs font-medium text-slate-500 mb-1">Format</label>
+                         <label className="block text-xs font-medium text-zinc-500 mb-1">Format</label>
                          <select 
                             value={paperSize} 
                             onChange={(e) => setPaperSize(e.target.value as PaperSize)}
-                            className="w-full p-2 border border-slate-300 rounded text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full p-2 border border-zinc-700 rounded text-sm bg-zinc-950 text-zinc-200 focus:ring-2 focus:ring-blue-500 outline-none"
                          >
                             <option value="letter">Letter (US)</option>
                             <option value="a4">A4 (Intl)</option>
                          </select>
                       </div>
                       <div>
-                         <label className="block text-xs font-medium text-slate-500 mb-1">Orientation</label>
+                         <label className="block text-xs font-medium text-zinc-500 mb-1">Orientation</label>
                          <select 
                             value={paperOrientation} 
                             onChange={(e) => setPaperOrientation(e.target.value as Orientation)}
-                            className="w-full p-2 border border-slate-300 rounded text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full p-2 border border-zinc-700 rounded text-sm bg-zinc-950 text-zinc-200 focus:ring-2 focus:ring-blue-500 outline-none"
                          >
                             <option value="portrait">Portrait</option>
                             <option value="landscape">Landscape</option>
@@ -277,45 +277,45 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                 {/* Grid Settings */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                      <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-1">Rows</label>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">Rows</label>
                       <input 
                         type="number" 
                         min="1" 
                         max="20"
                         value={tilingSettings.rows}
                         onChange={(e) => onTilingChange(parseInt(e.target.value) || 1, tilingSettings.cols)}
-                        className="w-full p-2 border border-slate-300 rounded text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full p-2 border border-zinc-700 rounded text-sm bg-zinc-950 text-zinc-200 focus:ring-2 focus:ring-blue-500 outline-none"
                       />
                      </div>
                      <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-1">Columns</label>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">Columns</label>
                       <input 
                         type="number" 
                         min="1" 
                         max="10"
                         value={tilingSettings.cols}
                         onChange={(e) => onTilingChange(tilingSettings.rows, parseInt(e.target.value) || 1)}
-                        className="w-full p-2 border border-slate-300 rounded text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full p-2 border border-zinc-700 rounded text-sm bg-zinc-950 text-zinc-200 focus:ring-2 focus:ring-blue-500 outline-none"
                       />
                      </div>
                 </div>
                 
                 {/* Auto Scale */}
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <label className="text-xs font-medium text-slate-700 flex items-center gap-2 cursor-pointer">
+                <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-800">
+                    <label className="text-xs font-medium text-zinc-400 flex items-center gap-2 cursor-pointer">
                       <Maximize2 size={14} />
                       Auto-fit to Page
                     </label>
                     <div 
                       onClick={() => setAutoScale(!autoScale)}
-                      className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${autoScale ? 'bg-blue-600' : 'bg-slate-300'}`}
+                      className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${autoScale ? 'bg-blue-600' : 'bg-zinc-600'}`}
                     >
                       <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all ${autoScale ? 'left-6' : 'left-1'}`}></div>
                     </div>
                 </div>
                 
                 {/* Validation Status */}
-                 <div className={`mt-4 p-3 rounded text-xs border ${fitsNaturally ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : (autoScale ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-amber-50 border-amber-200 text-amber-700')}`}>
+                 <div className={`mt-4 p-3 rounded text-xs border ${fitsNaturally ? 'bg-emerald-900/20 border-emerald-900/50 text-emerald-400' : (autoScale ? 'bg-blue-900/20 border-blue-900/50 text-blue-400' : 'bg-amber-900/20 border-amber-900/50 text-amber-400')}`}>
                    {(!fitsNaturally && !autoScale) ? (
                       <div className="flex items-center gap-2 font-bold">
                         <AlertTriangle size={14}/> 
@@ -324,11 +324,11 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                    ) : (
                       <div className="flex flex-col gap-1.5">
                          <div className="font-bold flex items-center gap-2">
-                            {fitsNaturally ? <CheckCircle size={14} className="text-emerald-600"/> : <Minimize2 size={14} className="text-blue-600"/>}
+                            {fitsNaturally ? <CheckCircle size={14} className="text-emerald-500"/> : <Minimize2 size={14} className="text-blue-500"/>}
                             <span>{fitsNaturally ? 'Fits perfectly' : 'Scaled to fit'}</span>
                          </div>
                          {!fitsNaturally && autoScale && (
-                            <div className="text-slate-500 leading-snug">
+                            <div className="text-zinc-500 leading-snug">
                                Scaled to <strong>{scalePercent}%</strong> to fit within safe printable margins ({PRINT_MARGIN_MM}mm).
                             </div>
                          )}
@@ -339,7 +339,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
               </div>
 
               {/* Viewport Area */}
-              <div className="flex-1 relative overflow-hidden bg-slate-200/50 cursor-grab active:cursor-grabbing h-2/3 md:h-full"
+              <div className="flex-1 relative overflow-hidden bg-zinc-950 cursor-grab active:cursor-grabbing h-2/3 md:h-full"
+                   style={{ backgroundImage: 'radial-gradient(circle, #3f3f46 1px, transparent 1px)', backgroundSize: '24px 24px' }}
                    onMouseDown={handleMouseDown}
                    onMouseMove={handleMouseMove}
                    onMouseUp={handleMouseUp}
@@ -347,10 +348,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                    onWheel={handleWheel}
               >
                  {/* Zoom Controls */}
-                 <div className="absolute top-4 right-4 z-20 flex flex-col bg-white rounded-lg shadow-md border border-slate-200">
-                    <button onClick={() => setViewZoom(z => Math.min(z + 0.1, 5))} className="p-2 hover:bg-slate-50 text-slate-600 border-b border-slate-100"><ZoomIn size={18} /></button>
-                    <button onClick={() => { setViewZoom(1); setViewPan({x:0,y:0}) }} className="p-2 hover:bg-slate-50 text-slate-600 border-b border-slate-100"><Maximize2 size={16} /></button>
-                    <button onClick={() => setViewZoom(z => Math.max(z - 0.1, 0.2))} className="p-2 hover:bg-slate-50 text-slate-600"><ZoomOut size={18} /></button>
+                 <div className="absolute top-4 right-4 z-20 flex flex-col bg-zinc-900 rounded-lg shadow-md border border-zinc-700">
+                    <button onClick={() => setViewZoom(z => Math.min(z + 0.1, 5))} className="p-2 hover:bg-zinc-800 text-zinc-400 border-b border-zinc-700"><ZoomIn size={18} /></button>
+                    <button onClick={() => { setViewZoom(1); setViewPan({x:0,y:0}) }} className="p-2 hover:bg-zinc-800 text-zinc-400 border-b border-zinc-700"><Maximize2 size={16} /></button>
+                    <button onClick={() => setViewZoom(z => Math.max(z - 0.1, 0.2))} className="p-2 hover:bg-zinc-800 text-zinc-400"><ZoomOut size={18} /></button>
                  </div>
 
                  {/* Pan Container */}
@@ -371,7 +372,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                           transformOrigin: 'center center'
                         }}
                     >
-                        <div className="absolute -top-8 left-0 text-xs text-slate-400 font-mono whitespace-nowrap bg-slate-200/50 px-2 py-1 rounded">
+                        <div className="absolute -top-8 left-0 text-xs text-zinc-500 font-mono whitespace-nowrap bg-zinc-900/50 px-2 py-1 rounded">
                           {paperSize.toUpperCase()} ({paperOrientation})
                         </div>
                         
@@ -421,11 +422,11 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
           )}
 
           {activeTab === 'data' && (
-            <div className="bg-white rounded-lg w-full h-full flex flex-col p-6">
+            <div className="bg-zinc-900 rounded-lg w-full h-full flex flex-col p-6">
                {csvData ? (
-                 <div className="overflow-auto flex-1 border border-slate-200 rounded-lg">
-                   <table className="w-full text-sm text-left text-slate-500">
-                     <thead className="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-200 sticky top-0">
+                 <div className="overflow-auto flex-1 border border-zinc-800 rounded-lg">
+                   <table className="w-full text-sm text-left text-zinc-400">
+                     <thead className="text-xs text-zinc-300 uppercase bg-zinc-800 border-b border-zinc-700 sticky top-0">
                        <tr>
                          <th className="px-6 py-3 w-10">#</th>
                          {csvData.headers.map((header) => (
@@ -435,10 +436,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                      </thead>
                      <tbody>
                        {csvData.rows.slice(0, 100).map((row, idx) => (
-                         <tr key={idx} className="bg-white border-b hover:bg-slate-50">
-                           <td className="px-6 py-4 font-mono text-xs text-slate-400">{idx + 1}</td>
+                         <tr key={idx} className="bg-zinc-900 border-b border-zinc-800 hover:bg-zinc-800 transition-colors">
+                           <td className="px-6 py-4 font-mono text-xs text-zinc-600">{idx + 1}</td>
                            {csvData.headers.map((header) => (
-                             <td key={header} className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">
+                             <td key={header} className="px-6 py-4 font-medium text-zinc-300 whitespace-nowrap">
                                {row[header]}
                              </td>
                            ))}
@@ -448,9 +449,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                    </table>
                  </div>
                ) : (
-                 <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center h-full">
+                 <div className="p-12 text-center text-zinc-600 flex flex-col items-center justify-center h-full">
                    <Database size={48} className="mb-4 opacity-20" />
-                   <p className="text-lg font-medium text-slate-600">No Data Loaded</p>
+                   <p className="text-lg font-medium text-zinc-500">No Data Loaded</p>
                    <p className="text-sm mt-1">Import a CSV file to preview data here.</p>
                  </div>
                )}
@@ -459,22 +460,22 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 bg-white flex justify-between md:justify-end gap-3 items-center z-20">
+        <div className="p-4 border-t border-zinc-800 bg-zinc-900 flex justify-between md:justify-end gap-3 items-center z-20">
           
           {csvData && (
-             <span className="text-xs text-slate-500 mr-auto hidden md:inline">
+             <span className="text-xs text-zinc-500 mr-auto hidden md:inline">
                 Will generate <strong>{Math.ceil(csvData.rows.length / totalLabels)}</strong> pages.
              </span>
           )}
 
-          <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-md font-medium text-sm transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-zinc-400 hover:bg-zinc-800 rounded-md font-medium text-sm transition-colors">
             Close
           </button>
           
           <button 
              onClick={handleDownloadPdf}
              disabled={isGenerating || (!fitsNaturally && !autoScale)}
-             className={`px-6 py-2 text-white rounded-md font-medium text-sm shadow-sm transition-colors flex items-center gap-2 ${isGenerating || (!fitsNaturally && !autoScale) ? 'bg-slate-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+             className={`px-6 py-2 text-white rounded-md font-medium text-sm shadow-sm transition-colors flex items-center gap-2 ${isGenerating || (!fitsNaturally && !autoScale) ? 'bg-zinc-700 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
           >
             {isGenerating ? 'Generating...' : (
                <>

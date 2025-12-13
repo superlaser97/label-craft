@@ -193,6 +193,76 @@ export const addQrCode = async (canvas: fabric.Canvas, dataKey: string) => {
   });
 };
 
+// --- Shape Generators ---
+
+export const addRectangle = (canvas: fabric.Canvas) => {
+  const rect = new fabric.Rect({
+    left: 100,
+    top: 100,
+    fill: '#e2e8f0', // Slate-200
+    width: 100,
+    height: 100,
+    stroke: '#334155', // Slate-700
+    strokeWidth: 2,
+    strokeUniform: true, // Fix for distortion
+    objectCaching: false,
+  });
+  canvas.add(rect);
+  canvas.setActiveObject(rect);
+  canvas.requestRenderAll();
+};
+
+export const addCircle = (canvas: fabric.Canvas) => {
+  const circle = new fabric.Circle({
+    left: 100,
+    top: 100,
+    fill: '#e2e8f0',
+    radius: 50,
+    stroke: '#334155',
+    strokeWidth: 2,
+    strokeUniform: true, // Fix for distortion
+    objectCaching: false,
+  });
+  canvas.add(circle);
+  canvas.setActiveObject(circle);
+  canvas.requestRenderAll();
+};
+
+export const addTriangle = (canvas: fabric.Canvas) => {
+  const triangle = new fabric.Triangle({
+    left: 100,
+    top: 100,
+    fill: '#e2e8f0',
+    width: 100,
+    height: 100,
+    stroke: '#334155',
+    strokeWidth: 2,
+    strokeUniform: true, // Fix for distortion
+    objectCaching: false,
+  });
+  canvas.add(triangle);
+  canvas.setActiveObject(triangle);
+  canvas.requestRenderAll();
+};
+
+export const addLine = (canvas: fabric.Canvas) => {
+  const line = new fabric.Line([50, 100, 200, 100], {
+    left: 50,
+    top: 100,
+    stroke: '#334155',
+    strokeWidth: 4,
+    strokeUniform: true, // Fix for distortion
+    objectCaching: false,
+  });
+  // Lines typically don't use fill, but keeping a default property structure is fine
+  canvas.add(line);
+  canvas.setActiveObject(line);
+  canvas.requestRenderAll();
+};
+
+
+// --- Updaters ---
+
 export const updateObjectDataKey = async (obj: fabric.Object, key: string) => {
   (obj as any).dataKey = key;
   // Preserve current color
@@ -257,9 +327,21 @@ export const updateObjectColor = async (obj: fabric.Object, color: string) => {
   obj.canvas?.requestRenderAll();
 };
 
+export const updateObjectStroke = (obj: fabric.Object, color: string) => {
+  obj.set('stroke', color);
+  obj.canvas?.requestRenderAll();
+};
+
+export const updateObjectStrokeWidth = (obj: fabric.Object, width: number) => {
+  obj.set('strokeWidth', width);
+  obj.canvas?.requestRenderAll();
+};
+
 export const serializeCanvas = (canvas: fabric.Canvas): LabelObject[] => {
-  // fill is included by default, but we ensure dataKey and flags are kept
-  const json = canvas.toObject(['dataKey', 'isBarcode', 'isQrCode', 'id']);
+  // Include standard properties plus our custom ones
+  // Note: stroke, strokeWidth, fill are included by standard toObject call usually, 
+  // but explicitly ensuring our custom logic works is good.
+  const json = canvas.toObject(['dataKey', 'isBarcode', 'isQrCode', 'id', 'stroke', 'strokeWidth', 'strokeUniform']);
   return json.objects || [];
 };
 
